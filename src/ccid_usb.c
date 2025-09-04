@@ -417,7 +417,15 @@ again_libusb:
 
 		/* for every device */
 		i = 0;
-		while ((dev = devs[i++]) != NULL)
+	
+		int fd;
+		if (sscanf(getenv("TERMUX_USB_FD"), "%d", &fd) == 1)
+		{
+			libusb_device_handle *shandle;
+			libusb_wrap_sys_device(ctx, (intptr_t) fd, &shandle);
+			dev = libusb_get_device(shandle);
+		}
+		if (dev != NULL)
 		{
 			struct libusb_device_descriptor desc;
 			struct libusb_config_descriptor *config_desc;

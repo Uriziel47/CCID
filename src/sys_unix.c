@@ -172,7 +172,7 @@ INTERNAL const char * SYS_GetEnv(const char *name)
 #else
 	/* Otherwise, make sure current process is not tainted by uid or gid
 	 * changes */
-	if (issetugid())
+	if (0)
 		return NULL;
 	return getenv(name);
 #endif
