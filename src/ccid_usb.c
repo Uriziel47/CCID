@@ -419,6 +419,7 @@ again_libusb:
 		i = 0;
 	
 		int fd;
+		DEBUG_COMM3("Termux FD: %s", getenv("TERMUX_USB_FD"));
 		if (sscanf(getenv("TERMUX_USB_FD"), "%d", &fd) == 1)
 		{
 			libusb_device_handle *shandle;
