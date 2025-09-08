@@ -244,10 +244,15 @@ status_t OpenUSBByName(unsigned int reader_index, /*@null@*/ char *device)
 	int count_libusb = 10;
 #endif
 	int interface_number = -1;
-	int i;
 	static int previous_reader_index = -1;
+#ifndef __TERMUX__
+	int i;
 	libusb_device **devs, *dev;
 	ssize_t cnt;
+#else#
+	int fd;
+	libusb_device *dev;
+#endif
 	list_t plist, *values, *ifdVendorID, *ifdProductID, *ifdFriendlyName;
 	int rv;
 	bool claim_failed = false;
@@ -386,6 +391,7 @@ status_t OpenUSBByName(unsigned int reader_index, /*@null@*/ char *device)
 #ifdef __APPLE__
 again_libusb:
 #endif
+#ifndef __TERMUX__
 	cnt = libusb_get_device_list(ctx, &devs);
 	if (cnt < 0)
 	{
@@ -393,7 +399,18 @@ again_libusb:
 		return_value = STATUS_UNSUCCESSFUL;
 		goto end1;
 	}
+#else#
+	if (sscanf(getenv("TERMUX_USB_FD"),"%d", &fd) < 1)
+	{
+		DEBUG_CRITICAL("Env TERMUX_USB_FD not set\n");
+		return_value = STATUS_UNSUCCESSFUL;
+		goto end1;
+	}
 
+	libusb_wrap_sys_device(ctx, (intptr_t) fd, &dev_handle);
+	dev = libusb_get_device(dev_handle);
+
+#endif#
 	/* for any supported reader */
 	for (alias=0; alias<list_size(ifdVendorID); alias++)
 	{
@@ -414,10 +431,13 @@ again_libusb:
 		if (device && strcmp(device, friendlyName))
 			continue;
 #endif
-
+#ifndef __TERMUX__
 		/* for every device */
 		i = 0;
 		while ((dev = devs[i++]) != NULL)
+#else#
+		if (dev != NULL)
+#endif#
 		{
 			struct libusb_device_descriptor desc;
 			struct libusb_config_descriptor *config_desc;
@@ -628,7 +648,7 @@ again_libusb:
 						}
 					}
 				}
-
+#ifndef __TERMUX__
 				DEBUG_COMM3("Trying to open USB bus/device: %d/%d",
 					bus_number, device_address);
 
@@ -640,6 +660,7 @@ again_libusb:
 
 					continue;
 				}
+#endif#
 
 again:
 				r = libusb_get_active_config_descriptor(dev, &config_desc);
