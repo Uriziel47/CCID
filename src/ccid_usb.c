@@ -249,7 +249,7 @@ status_t OpenUSBByName(unsigned int reader_index, /*@null@*/ char *device)
 	int i;
 	libusb_device **devs, *dev;
 	ssize_t cnt;
-#else#
+#else
 	int fd;
 	libusb_device *dev;
 #endif
@@ -399,7 +399,7 @@ again_libusb:
 		return_value = STATUS_UNSUCCESSFUL;
 		goto end1;
 	}
-#else#
+#else
 	if (sscanf(getenv("TERMUX_USB_FD"),"%d", &fd) < 1)
 	{
 		DEBUG_CRITICAL("Env TERMUX_USB_FD not set\n");
@@ -410,7 +410,7 @@ again_libusb:
 	libusb_wrap_sys_device(ctx, (intptr_t) fd, &dev_handle);
 	dev = libusb_get_device(dev_handle);
 
-#endif#
+#endif
 	/* for any supported reader */
 	for (alias=0; alias<list_size(ifdVendorID); alias++)
 	{
@@ -435,9 +435,9 @@ again_libusb:
 		/* for every device */
 		i = 0;
 		while ((dev = devs[i++]) != NULL)
-#else#
+#else
 		if (dev != NULL)
-#endif#
+#endif
 		{
 			struct libusb_device_descriptor desc;
 			struct libusb_config_descriptor *config_desc;
@@ -660,7 +660,7 @@ again_libusb:
 
 					continue;
 				}
-#endif#
+#endif
 
 again:
 				r = libusb_get_active_config_descriptor(dev, &config_desc);
@@ -941,8 +941,10 @@ again:
 end:
 	if (usbDevice[reader_index].dev_handle == NULL)
 	{
+#ifndef __TERMUX__
 		/* free the libusb allocated list & devices */
 		libusb_free_device_list(devs, 1);
+#endif
 
 #ifdef __APPLE__
 		/* give some time to libusb to detect the new USB devices on Mac OS X */
@@ -978,9 +980,10 @@ end:
 	previous_reader_index = reader_index;
 
 end2:
+#ifndef __TERMUX__
 	/* free the libusb allocated list & devices */
 	libusb_free_device_list(devs, 1);
-
+#endif
 end1:
 	/* free bundle list */
 	bundleRelease(&plist);
