@@ -174,7 +174,7 @@ INTERNAL const char * SYS_GetEnv(const char *name)
 	 * changes */
 #ifndef __TERMUX__
 	if (issetugid())
-#else#
+#else
 	if (0)
 #endif
 		return NULL;
